@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.env.local
+.vercel/
+dist/
+.DS_Store
+*.log
+.private-key.pem

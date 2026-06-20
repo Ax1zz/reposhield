@@ -1,0 +1,24 @@
+name: BotShield
+description: Block AI-slop PRs and issues, crypto-airdrop spam, and drive-by farming accounts.
+author: BotShield
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  github-token:
+    description: GitHub token (defaults to GITHUB_TOKEN provided to the workflow).
+    required: false
+    default: ${{ github.token }}
+  block-threshold:
+    description: Score (0..1) at which to close+label the event. Default 0.6.
+    required: false
+    default: '0.6'
+  dry-run:
+    description: If "true", only comment with the verdict, do not close.
+    required: false
+    default: 'false'
+
+runs:
+  using: node20
+  main: dist/index.js

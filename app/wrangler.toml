@@ -1,0 +1,18 @@
+name = "botshield"
+main = "src/index.ts"
+compatibility_date = "2025-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Secrets (set with `wrangler secret put <NAME>`):
+#   GITHUB_APP_ID          — numeric ID of the GitHub App
+#   GITHUB_APP_PRIVATE_KEY — PEM private key contents (one line, \n escaped or use file)
+#   GITHUB_WEBHOOK_SECRET  — random string used when creating the App webhook
+
+# KV namespace for blocked-event log (Day 2 dashboard reads from here).
+# Create with: wrangler kv:namespace create BOTSHIELD_LOG
+# [[kv_namespaces]]
+# binding = "BOTSHIELD_LOG"
+# id = "REPLACE_ME"
+
+[observability]
+enabled = true

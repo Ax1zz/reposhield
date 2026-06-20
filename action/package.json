@@ -1,0 +1,14 @@
+{
+  "name": "botshield-action",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist --minify",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.5"
+  }
+}
