@@ -1,0 +1,53 @@
+name: Bug report
+description: RepoShield closed a real PR/issue, or missed obvious spam.
+labels: ['bug']
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - False positive (closed a real PR/issue)
+        - False negative (missed spam)
+        - Crash / 500 error in the Worker
+        - Action workflow failure
+    validations:
+      required: true
+
+  - type: input
+    id: link
+    attributes:
+      label: Link to the offending PR / issue
+      placeholder: https://github.com/owner/repo/issues/123
+    validations:
+      required: false
+
+  - type: textarea
+    id: title-body
+    attributes:
+      label: Title + body (if deleted, paste what you remember)
+      render: markdown
+
+  - type: textarea
+    id: verdict
+    attributes:
+      label: RepoShield's verdict comment (if any)
+      render: markdown
+      placeholder: |
+        > Closed automatically by RepoShield.
+        > **Verdict:** crypto_airdrop (confidence 78%)
+        > **Why:**
+        > - …
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened, and why
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: RepoShield version (tag or commit)
+      placeholder: v0.1.0

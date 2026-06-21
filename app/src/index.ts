@@ -1,5 +1,5 @@
 /**
- * BotShield Worker entry — receives GitHub App webhooks, classifies the event,
+ * RepoShield Worker entry — receives GitHub App webhooks, classifies the event,
  * and (if the verdict says block) closes + comments + labels the issue/PR.
  *
  * Routes:
@@ -19,7 +19,7 @@ interface Env {
   GITHUB_APP_ID: string;
   GITHUB_APP_PRIVATE_KEY: string;
   GITHUB_WEBHOOK_SECRET: string;
-  BOTSHIELD_LOG?: KVNamespace; // optional Day-2 binding
+  REPOSHIELD_LOG?: KVNamespace; // optional Day-2 binding
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -27,11 +27,11 @@ const app = new Hono<{ Bindings: Env }>();
 app.get('/', (c) =>
   c.text(
     [
-      'BotShield Worker — alive.',
+      'RepoShield Worker — alive.',
       '',
       'POST /webhook  → GitHub App webhook',
       '',
-      'github.com/botshield/botshield',
+      'github.com/Ax1zz/reposhield',
     ].join('\n'),
   ),
 );
@@ -51,10 +51,10 @@ app.post('/webhook', async (c) => {
     privateKeyPem: c.env.GITHUB_APP_PRIVATE_KEY,
   };
 
-  const logger = c.env.BOTSHIELD_LOG
+  const logger = c.env.REPOSHIELD_LOG
     ? async (entry: BlockLog) => {
         const key = `evt:${entry.ts}:${delivery}`;
-        await c.env.BOTSHIELD_LOG!.put(key, JSON.stringify(entry), {
+        await c.env.REPOSHIELD_LOG!.put(key, JSON.stringify(entry), {
           expirationTtl: 60 * 60 * 24 * 30, // 30 days
         });
       }

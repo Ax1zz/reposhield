@@ -1,6 +1,6 @@
-name: BotShield
+name: RepoShield
 description: Block AI-slop PRs and issues, crypto-airdrop spam, and drive-by farming accounts.
-author: BotShield
+author: Ax1zz
 branding:
   icon: shield
   color: purple

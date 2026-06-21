@@ -4,7 +4,11 @@ node_modules/
 .env
 .env.local
 .vercel/
-dist/
+app/dist/
+landing/dist/
+# action/dist/ is committed — required by GitHub Actions runtime
 .DS_Store
 *.log
 .private-key.pem
+*.pem
+key.pem

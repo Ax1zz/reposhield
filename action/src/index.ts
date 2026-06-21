@@ -1,5 +1,5 @@
 /**
- * BotShield Action entry — same classifier as the cloud Worker, run as a
+ * RepoShield Action entry — same classifier as the cloud Worker, run as a
  * GitHub Action from each repo's workflow. No external services.
  *
  * Reads the event payload from $GITHUB_EVENT_PATH, the event name from
@@ -49,7 +49,7 @@ async function gh(token: string, method: string, path: string, body?: unknown) {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'BotShield-Action/0.1',
+      'User-Agent': 'RepoShield-Action/0.1',
       ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -66,17 +66,17 @@ async function main() {
   const dryRun = input('dry-run', 'false').toLowerCase() === 'true';
 
   if (!eventPath || !eventName || !token) {
-    console.log('BotShield: missing event context, skipping.');
+    console.log('RepoShield: missing event context, skipping.');
     return;
   }
 
   const payload = JSON.parse(readFileSync(eventPath, 'utf8'));
   if (payload.action !== 'opened') {
-    console.log(`BotShield: ignoring action=${payload.action}`);
+    console.log(`RepoShield: ignoring action=${payload.action}`);
     return;
   }
   if (payload.sender?.type === 'Bot') {
-    console.log('BotShield: ignoring Bot sender.');
+    console.log('RepoShield: ignoring Bot sender.');
     return;
   }
 
@@ -99,7 +99,7 @@ async function main() {
   } else if (eventName === 'pull_request' || eventName === 'pull_request_target') {
     const e = payload as PREvent;
     if (e.pull_request.draft) {
-      console.log('BotShield: ignoring draft PR.');
+      console.log('RepoShield: ignoring draft PR.');
       return;
     }
     kind = 'pull_request';
@@ -111,7 +111,7 @@ async function main() {
     deletions = e.pull_request.deletions;
     filesChanged = e.pull_request.changed_files;
   } else {
-    console.log(`BotShield: ignoring event ${eventName}`);
+    console.log(`RepoShield: ignoring event ${eventName}`);
     return;
   }
 
@@ -145,10 +145,10 @@ async function main() {
     { kind, title, body, additions, deletions, filesChanged },
   );
 
-  console.log('BotShield verdict:', JSON.stringify(verdict));
+  console.log('RepoShield verdict:', JSON.stringify(verdict));
 
   if (verdict.score < threshold) {
-    console.log(`BotShield: score ${verdict.score.toFixed(2)} < threshold ${threshold}; not blocking.`);
+    console.log(`RepoShield: score ${verdict.score.toFixed(2)} < threshold ${threshold}; not blocking.`);
     return;
   }
 
@@ -162,14 +162,14 @@ async function main() {
       state_reason: 'not_planned',
     });
     await gh(token, 'POST', `/repos/${owner}/${repo}/issues/${number}/labels`, {
-      labels: ['botshield/spam'],
+      labels: ['reposhield/spam'],
     }).catch(() => {}); // label create may 404; swallow
   }
 
-  console.log(`BotShield: ${dryRun ? 'commented (dry-run)' : 'closed'} ${kind} #${number}`);
+  console.log(`RepoShield: ${dryRun ? 'commented (dry-run)' : 'closed'} ${kind} #${number}`);
 }
 
 main().catch((e) => {
-  console.error('BotShield action failed:', e);
+  console.error('RepoShield action failed:', e);
   process.exit(1);
 });

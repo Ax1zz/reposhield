@@ -105,7 +105,7 @@ export async function handleIssueOpened(
       createdAt: user?.created_at,
       publicRepos: user?.public_repos,
       followers: user?.followers,
-      hasDefaultAvatar: user ? /identicons?\.github\.com|\?v=\d+$/.test(user.avatar_url) === false ? false : true : undefined,
+      hasDefaultAvatar: undefined,
       priorContributionsToRepo: prior,
     },
     {
@@ -118,7 +118,7 @@ export async function handleIssueOpened(
   if (verdict.block) {
     await postComment(token, owner, repo, number, renderCloseComment(verdict));
     await closeIssue(token, owner, repo, number, 'not_planned');
-    await addLabel(token, owner, repo, number, ['botshield/spam']);
+    await addLabel(token, owner, repo, number, ['reposhield/spam']);
   }
 
   await log?.({
@@ -177,7 +177,7 @@ export async function handlePullRequestOpened(
   if (verdict.block) {
     await postComment(token, owner, repo, number, renderCloseComment(verdict));
     await closeIssue(token, owner, repo, number, 'not_planned');
-    await addLabel(token, owner, repo, number, ['botshield/spam']);
+    await addLabel(token, owner, repo, number, ['reposhield/spam']);
   }
 
   await log?.({

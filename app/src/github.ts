@@ -9,7 +9,14 @@
  *   2. Exchange JWT for an installation access token (1 hr) at
  *      POST /app/installations/{installation_id}/access_tokens.
  *   3. Use that token as `Authorization: Bearer ...` for API calls.
+ *
+ * Why node:crypto and not webcrypto?
+ *   GitHub Apps issue private keys in PKCS#1 (-----BEGIN RSA PRIVATE KEY-----),
+ *   but WebCrypto's importKey only accepts PKCS#8. node:crypto auto-detects
+ *   both, so we use it via the nodejs_compat flag (set in wrangler.toml).
  */
+
+import { createPrivateKey, createSign, type KeyObject } from 'node:crypto';
 
 export interface AppCreds {
   appId: string;
@@ -22,9 +29,25 @@ interface InstallationToken {
 }
 
 const tokenCache = new Map<number, InstallationToken>();
+let cachedKey: KeyObject | null = null;
+let cachedKeyPem: string | null = null;
+
+function loadKey(pem: string): KeyObject {
+  if (cachedKey && cachedKeyPem === pem) return cachedKey;
+  cachedKey = createPrivateKey({ key: pem, format: 'pem' });
+  cachedKeyPem = pem;
+  return cachedKey;
+}
+
+function b64url(input: string | Uint8Array): string {
+  const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
 
 /** Build the JWT used to authenticate AS the App (not an installation). */
-async function signAppJwt(creds: AppCreds): Promise<string> {
+function signAppJwt(creds: AppCreds): string {
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: 'RS256', typ: 'JWT' };
   const payload = {
@@ -32,35 +55,10 @@ async function signAppJwt(creds: AppCreds): Promise<string> {
     exp: now + 9 * 60,
     iss: creds.appId,
   };
-  const enc = (o: object) => btoa(JSON.stringify(o)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-  const data = `${enc(header)}.${enc(payload)}`;
-
-  const key = await importPkcs8(creds.privateKeyPem);
-  const sigBuf = await crypto.subtle.sign(
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    key,
-    new TextEncoder().encode(data),
-  );
-  const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf)))
-    .replace(/=+$/, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-  return `${data}.${sig}`;
-}
-
-async function importPkcs8(pem: string): Promise<CryptoKey> {
-  const b64 = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, '')
-    .replace(/-----END PRIVATE KEY-----/, '')
-    .replace(/\s+/g, '');
-  const raw = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  return crypto.subtle.importKey(
-    'pkcs8',
-    raw.buffer,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
+  const data = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(payload))}`;
+  const key = loadKey(creds.privateKeyPem);
+  const sig = createSign('RSA-SHA256').update(data).sign(key);
+  return `${data}.${b64url(new Uint8Array(sig))}`;
 }
 
 /** Get a (cached) installation access token. */
@@ -71,7 +69,7 @@ export async function getInstallationToken(
   const cached = tokenCache.get(installationId);
   if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
 
-  const jwt = await signAppJwt(creds);
+  const jwt = signAppJwt(creds);
   const r = await fetch(
     `https://api.github.com/app/installations/${installationId}/access_tokens`,
     {
@@ -80,7 +78,7 @@ export async function getInstallationToken(
         Authorization: `Bearer ${jwt}`,
         Accept: 'application/vnd.github+json',
         'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'BotShield/0.1',
+        'User-Agent': 'RepoShield/0.1',
       },
     },
   );
@@ -109,7 +107,7 @@ async function gh(
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'BotShield/0.1',
+      'User-Agent': 'RepoShield/0.1',
       ...(body ? { 'Content-Type': 'application/json' } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,

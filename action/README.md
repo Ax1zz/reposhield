@@ -1,15 +1,15 @@
-# BotShield Action
+# RepoShield Action
 
 Free GitHub Action that blocks AI-slop PRs/issues and crypto-airdrop spam on your repo.
 
-For the always-on, repo-wide variant (no workflow file required, with dashboard), install the [BotShield GitHub App](https://botshield.dev).
+For the always-on, repo-wide variant (no workflow file required, with dashboard), install the [RepoShield GitHub App](https://reposhield.dev).
 
 ## Quick start
 
-Create `.github/workflows/botshield.yml`:
+Create `.github/workflows/reposhield.yml`:
 
 ```yaml
-name: BotShield
+name: RepoShield
 on:
   issues:
     types: [opened]
@@ -24,13 +24,13 @@ jobs:
   shield:
     runs-on: ubuntu-latest
     steps:
-      - uses: botshield/action@v1
+      - uses: Ax1zz/reposhield-action@v1
         with:
           block-threshold: '0.6'
           dry-run: 'false'
 ```
 
-Use `pull_request_target` (not `pull_request`) so the workflow has write access to the PR even from forks. This is intentional and safe here — BotShield only reads metadata, never checks out untrusted code.
+Use `pull_request_target` (not `pull_request`) so the workflow has write access to the PR even from forks. This is intentional and safe here — RepoShield only reads metadata, never checks out untrusted code.
 
 ## Inputs
 

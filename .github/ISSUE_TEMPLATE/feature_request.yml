@@ -1,0 +1,25 @@
+name: Feature request
+description: A pattern, signal, or knob you'd like RepoShield to support.
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What spam pattern or maintainer workflow does this serve?
+      placeholder: "Spammers are now posting <pattern> and RepoShield doesn't catch it, because…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed signal / knob / behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: false-positive-risk
+    attributes:
+      label: What legitimate content could this falsely flag, and how do we guard against it?
+    validations:
+      required: true
