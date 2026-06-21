@@ -1,0 +1,9 @@
+# Everything is owned by the maintainer; review and approval required on all changes.
+*                       @Ax1zz
+
+# Classifier and security-sensitive paths warrant explicit ownership for emphasis.
+/app/src/classifier.ts  @Ax1zz
+/app/src/github.ts      @Ax1zz
+/app/src/webhook.ts     @Ax1zz
+/SECURITY.md            @Ax1zz
+/.github/workflows/     @Ax1zz
